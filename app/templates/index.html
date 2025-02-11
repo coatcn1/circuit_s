@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>设备仪表板</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      h1 {
+        text-align: center;
+      }
+      .device {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+      button {
+        margin-right: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>设备列表</h1>
+    <div id="device-list"></div>
+
+    <script>
+      let socket;
+
+      // 创建 WebSocket 连接
+      function createWebSocketConnection() {
+        socket = new WebSocket(
+          "ws://192.168.137.1:8000/api/v1/devices/commands"
+        );
+
+        socket.onopen = function () {
+          console.log("WebSocket 连接已打开");
+        };
+
+        socket.onmessage = function (event) {
+          console.log("收到消息:", event.data);
+        };
+
+        socket.onclose = function () {
+          console.log("WebSocket 连接已关闭");
+        };
+
+        socket.onerror = function (error) {
+          console.error("WebSocket 错误:", error);
+        };
+      }
+
+      // 获取并渲染设备列表
+      async function fetchDevices() {
+        try {
+          const response = await fetch("/api/v1/devices");
+          const devices = await response.json();
+          renderDevices(devices);
+        } catch (error) {
+          console.error("获取设备时出错:", error);
+        }
+      }
+
+      // 渲染设备
+      function renderDevices(devices) {
+        const deviceList = document.getElementById("device-list");
+        deviceList.innerHTML = ""; // 清除现有内容
+
+        devices.forEach((deviceId) => {
+          const deviceDiv = document.createElement("div");
+          deviceDiv.className = "device";
+          deviceDiv.innerHTML = `
+                    <h2>${deviceId}</h2>
+                    <button onclick="startInspection('${deviceId}')">开始巡检</button>
+                    <button onclick="stopInspection('${deviceId}')">停止巡检</button>
+                    <button onclick="viewVideos('${deviceId}')">查看视频</button>
+                `;
+          deviceList.appendChild(deviceDiv);
+        });
+      }
+
+      // 开始巡检
+      function startInspection(deviceId) {
+        const message = {
+          cmd: "start_inspection",
+          inspection_id: deviceId,
+        };
+
+        if (socket.readyState === WebSocket.OPEN) {
+          socket.send(JSON.stringify(message));
+          alert(`开始巡检: ${deviceId}`);
+        } else {
+          alert("WebSocket 连接未打开");
+        }
+      }
+
+      // 停止巡检
+      function stopInspection(deviceId) {
+        const message = {
+          cmd: "stop_inspection",
+          inspection_id: deviceId,
+        };
+
+        if (socket.readyState === WebSocket.OPEN) {
+          socket.send(JSON.stringify(message));
+          alert(`停止巡检: ${deviceId}`);
+        } else {
+          alert("WebSocket 连接未打开");
+        }
+      }
+
+      // 查看视频：打开视频页面
+      function viewVideos(deviceId) {
+        window.open("/video", "_blank");
+      }
+
+      // 初始加载
+      fetchDevices();
+      createWebSocketConnection();
+    </script>
+  </body>
+</html>

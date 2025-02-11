@@ -1,0 +1,71 @@
+# 服务器配置
+server:
+  host: "0.0.0.0"
+  port: 8000
+  debug: true
+  allowed_origins:
+    - "http://localhost:3000"
+    - "https://circuit.bjzntd.com"
+
+# 数据库配置
+database:
+  uri: "mongodb://localhost:27017"
+  name: "circuit_db"
+  collections:
+    devices: "devices"
+    inspections: "inspections"
+    uploads: "uploads"
+
+# 存储配置
+storage:
+  type: "local"           # local 或 s3
+  local:
+    path: "data/videos"   # 视频文件存储路径
+    temp_path: "data/temp" # 临时文件路径
+  s3:
+    bucket: "circuit-videos"
+    region: "ap-northeast-1"
+    access_key: ""
+    secret_key: ""
+
+# JWT配置
+jwt:
+  secret_key: "your-secret-key-please-change-in-production"  # 生产环境中要修改
+  algorithm: "HS256"
+  access_token_expire_days: 30
+
+# 上传配置
+upload:
+  chunk_size: 5242880     # 分片大小(5MB)
+  max_file_size: 1073741824  # 最大文件大小(1GB)
+  allowed_formats:
+    - "mp4"
+    - "avi"
+  video_config:
+    default_format: "mp4"
+    default_bitrate: 2000000    # 2Mbps
+    default_resolution: "1920x1080"
+    default_fps: 30
+
+# 日志配置
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/circuit.log"
+  max_size: 10485760     # 10MB
+  backup_count: 5
+
+# 监控配置
+monitoring:
+  prometheus:
+    enabled: true
+    path: "/metrics"
+  health_check:
+    enabled: true
+    path: "/health"
+
+# 清理配置
+cleanup:
+  video_retention_days: 30    # 视频保留天数
+  temp_file_ttl: 86400       # 临时文件生存时间(秒)
+  cleanup_interval: 3600      # 清理间隔(秒)
